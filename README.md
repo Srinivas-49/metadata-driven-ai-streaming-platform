@@ -1,5 +1,20 @@
 # Metadata-Driven AI & Retrieval Platform
 
+> **2026 portfolio upgrade:** Bounded source ingestion with SHA-256 provenance, deterministic offline retrieval evaluation, access-scope leakage checks and reproducible artifacts. No model credentials or paid cloud resources are needed for the demo.
+
+### Offline retrieval-validation evidence
+
+    python -m pytest -q
+    python -m scripts.run_secure_demo
+
+The sample uses local hash-based vectors (not pretrained embeddings), lexical/vector fusion, source allowlists, citations, recall, reciprocal rank and negative-query evaluation. GitHub CI publishes the evaluation JSON as an artifact. Results are **toy fixture measurements**, not production LLM quality or regulatory compliance.
+
+- [Security and evaluation runbook](docs/RETRIEVAL_EVIDENCE_AND_AZURE.md)
+- [Optional, manual-only Azure AI Search Free resource](infra/azure/search_free.bicep)
+- [Permission-scoped hybrid retrieval](src/retrieval_service.py)
+
+
+
 **Status:** local, testable proof of concept. Metadata-configured ingestion, lexical retrieval, embedding-vector search, hybrid ranking, extractive citations and abstention. Optional Azure OpenAI/LangChain adapters are examples, not evidence of deployment.
 
 ## Architecture

@@ -1,5 +1,19 @@
 # Metadata-Driven AI & Retrieval Platform
 
+## Real scholarly metadata: OpenAlex + Crossref
+
+A new real-source track ingests public works/DOI metadata from OpenAlex and Crossref, retaining source provenance and reconciling duplicate DOIs. It intentionally excludes publisher abstracts and PDFs (reuse rights may differ). This enables large-scale **bibliographic retrieval**, not yet full-text RAG.
+
+```bash
+export CROSSREF_CONTACT_EMAIL=YOUR_CONTACT_EMAIL
+python -m scripts.fetch_research_catalogues --start 2025-01-01 --end 2025-01-31 --max-pages 1 --out raw-research
+```
+
+Upload the output folders into a Unity Catalog Volume and run `notebooks/03_real_scholarly_metadata_lakehouse.py` for Bronze ingestion, Silver record quality, DOI deduplication, lexical term indexing and Gold publication/term metrics.
+
+[Source attribution and scale-aware ingest runbook](docs/REAL_SCHOLARLY_KNOWLEDGE_PLATFORM.md). **OpenAlex contains 300M+ works upstream; this repository does not claim to have ingested that many.**
+
+
 ## Real research-corpus pipeline (Crossref + Europe PMC)
 
 The repository now has a **real-world scholarly ingestion track** using the public Crossref and Europe PMC REST APIs, DOI-based source reconciliation, cursor bookmarks, SHA-256 page manifests and a Databricks Spark Delta pipeline for citation-backed lexical retrieval.

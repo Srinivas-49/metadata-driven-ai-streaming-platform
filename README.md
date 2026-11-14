@@ -1,25 +1,20 @@
-# Metadata-Driven AI & Streaming Data Platform
+# Metadata-Driven AI & Retrieval Platform
 
-**Status:** Locally tested, metadata-configured document ingestion and **offline lexical retrieval baseline**. Optional Azure OpenAI + LangChain components are integration examples, not production deployments. **There is no deployed vector database, live LLM service, or streaming pipeline in this repository.**
+**Status:** local, testable proof of concept. Metadata-configured ingestion, lexical retrieval, embedding-vector search, hybrid ranking, extractive citations and abstention. Optional Azure OpenAI/LangChain adapters are examples, not evidence of deployment.
 
-## Problem / solution
-Maintaining source-specific ingestion code is difficult, and ungrounded generated answers are hard to audit. Configuration JSON identifies approved documents and chunk settings. A deterministic lexical index supports source-cited, extractive answers and abstention when evidence is missing.
+## Architecture
+JSON document manifest → overlapping chunks → lexical and injected vector retrieval → **trusted source allowlist** → reciprocal-rank fusion → source-cited extractive answer or abstention.
 
-**Architecture:** JSON metadata -> document ingestion -> overlapping chunks -> lexical retrieval -> extractive response + citations -> labelled evaluation.
-
-## Quickstart
+## Run
 ```bash
-python -m scripts.run_demo
+python -m pip install pytest
 python -m pytest -q
+python -m scripts.run_demo
 ```
 
-## AI integration path
-`integrations/azure_openai_langchain_example.py` shows how to initialise Azure OpenAI chat and embeddings clients with LangChain, with credentials supplied by environment variables. Install `langchain-openai` to use that module. It is not called by the local demo or CI.
+- `src/metadata_rag.py`: local ingestion, lexical retrieval and sample evaluation.
+- `src/vector_retrieval.py`: provider-independent embedding search using cosine similarity.
+- `src/retrieval_service.py`: permission-scoped hybrid search, answer and evaluation helpers.
+- `docs/SECURITY_AND_EVALUATION.md`: security boundaries and production roadmap.
 
-A production RAG implementation needs Azure AI Search vector/hybrid indexing, document-level ACL filtering, embedding version control, idempotent reindexing, retrieval/faithfulness evaluation, prompt injection defenses, observability, error budgets and cost controls. Kafka streaming ingestion is an architectural extension only, not implemented.
-
-## Evaluation limitations
-A three-question synthetic fixture evaluates Recall@3. Results are a toy demonstration, not a measured production retrieval-accuracy claim. `grounded=True` means an extractive answer was returned from a document, not that the document itself is factually correct.
-
-## Interview topics
-Schema-driven ingestion, chunk overlap, sparse vs dense retrieval, RAG evaluation, precision/recall, tenant isolation, prompt injection, access control, vector indexing, model drift, feedback loops and token budgets.
+**Important:** `allowed_sources` must be supplied by a **trusted** service. The code does not authenticate users, enforce vector-database permissions, or deploy an Azure resource. RRF ranks are not confidence probabilities and sample tests do not establish clinical or production reliability.

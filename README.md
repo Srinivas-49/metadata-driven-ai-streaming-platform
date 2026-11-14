@@ -1,5 +1,15 @@
 # Metadata-Driven AI & Retrieval Platform
 
+## Real research-corpus pipeline (Crossref + Europe PMC)
+
+The repository now has a **real-world scholarly ingestion track** using the public Crossref and Europe PMC REST APIs, DOI-based source reconciliation, cursor bookmarks, SHA-256 page manifests and a Databricks Spark Delta pipeline for citation-backed lexical retrieval.
+
+- [Crossref + Europe PMC ingestion and licensing rules](real_data/README.md)
+- [Real DOI enrichment, chunking and retrieval notebook](notebooks/03_real_scholarly_delta_retrieval.py)
+- [Offline quality and checksum tests](tests/test_scholarly_real_sources.py)
+
+This uses metadata and open-access-filtered research records only, not a bulk copyright-unclear full-text archive. The number of works indexed depends on actual API pages retrieved and source overlap; no millions-of-documents deployment is claimed.
+
 > **2026 portfolio upgrade:** Bounded source ingestion with SHA-256 provenance, deterministic offline retrieval evaluation, access-scope leakage checks and reproducible artifacts. No model credentials or paid cloud resources are needed for the demo.
 
 ### Offline retrieval-validation evidence

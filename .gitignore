@@ -4,3 +4,10 @@ __pycache__/
 *.db
 *.pyc
 .venv/
+
+# Paged public research datasets and local credentials
+real-data/
+*.partial
+.env
+.env.*
+.databricks/

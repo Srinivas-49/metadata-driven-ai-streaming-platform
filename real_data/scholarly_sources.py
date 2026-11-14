@@ -81,11 +81,11 @@ def normalise_europepmc(item):
             "source": "europepmc_open_access",
             "citation_url": "https://doi.org/" + doi}
 
-def write_pages(root, source, *, topic="data engineering", pages=2, page_size=25, fetch=get_json, pause=0):
+def write_pages(root, source, *, topic="data engineering", pages=2, page_size=25, start_page=0, fetch=get_json, pause=0):
     if source not in ("crossref", "europepmc"):
         raise ValueError("Unknown provider")
-    if not 1 <= page_size <= 1000 or not 1 <= pages <= 1000:
-        raise ValueError("page_size 1..1000 and pages 1..1000")
+    if not 1 <= page_size <= 1000 or not 1 <= pages <= 1000 or not 0 <= start_page <= 100000:
+        raise ValueError("page_size 1..1000, pages 1..1000 and start_page 0..100000")
     if not 1 <= len(topic) <= 100 or any(ord(c) < 32 for c in topic):
         raise ValueError("Invalid topic")
     folder = Path(root) / source
@@ -97,8 +97,19 @@ def write_pages(root, source, *, topic="data engineering", pages=2, page_size=25
         raise ValueError("Source parameters changed; use a separate landing folder")
     previous_entries = {item["filename"]: item for item in (previous or {}).get("pages", [])}
     cursor = "*"
-    entries = []
-    for index in range(pages):
+    if start_page:
+        prev_path = folder / f"page_{start_page - 1:06d}.jsonl"
+        prev_bookmark = folder / f"page_{start_page - 1:06d}.cursor.json"
+        tracked = previous_entries.get(prev_path.name)
+        if not tracked or not prev_path.is_file() or not prev_bookmark.is_file():
+            raise ValueError("Cannot resume from an unverified previous page")
+        if hashlib.sha256(prev_path.read_bytes()).hexdigest() != tracked["sha256"]:
+            raise ValueError("Previous scholarly page checksum mismatch")
+        cursor = json.loads(prev_bookmark.read_text())["next_cursor"]
+        if not cursor:
+            raise ValueError("Missing page cursor for resumed crawl")
+    entries = dict(previous_entries)
+    for index in range(start_page, start_page + pages):
         path = folder / f"page_{index:06d}.jsonl"
         bookmark = folder / f"page_{index:06d}.cursor.json"
         if path.is_file() and bookmark.is_file():
@@ -140,15 +151,16 @@ def write_pages(root, source, *, topic="data engineering", pages=2, page_size=25
             sha = hashlib.sha256(contents).hexdigest()
             if pause:
                 time.sleep(pause)
-        entries.append({"filename": path.name, "records": count, "sha256": sha})
+        entries[path.name] = {"filename": path.name, "records": count, "sha256": sha}
         if count < page_size:
             # Pages can be partially filtered by null DOI/OA validation; don't
             # interpret source exhaustion from normalized rows alone.
             # In scale runs, continue page count but stop when cursor stops.
             if cursor == "*":
                 break
+    pages_index = [entries[key] for key in sorted(entries)]
     manifest = {"source": source, "topic": topic, "page_size": page_size,
-                "pages": entries, "normalized_records": sum(x["records"] for x in entries),
+                "pages": pages_index, "normalized_records": sum(x["records"] for x in pages_index),
                 "last_cursor": cursor}
     (folder / "manifest.json").write_text(json.dumps(manifest, indent=2))
     return manifest
@@ -190,14 +202,16 @@ def main():
     p.add_argument("--out", default="real-data/scholarly")
     p.add_argument("--topic", default="data engineering")
     p.add_argument("--pages", type=int, default=2)
+    p.add_argument("--start-page", type=int, default=0)
     p.add_argument("--page-size", type=int, default=25)
     p.add_argument("--confirm-large", action="store_true")
     a = p.parse_args()
-    if a.pages > 10 and not a.confirm_large:
-        p.error("Large external crawls require --confirm-large and quota review")
+    if (a.pages > 10 or a.start_page > 0) and not a.confirm_large:
+        p.error("Large or resumed external crawls require --confirm-large and quota review")
     for provider in ("crossref", "europepmc"):
         print(json.dumps(write_pages(a.out, provider, topic=a.topic,
-                                     pages=a.pages, page_size=a.page_size), indent=2))
+                                     pages=a.pages, page_size=a.page_size,
+                                     start_page=a.start_page), indent=2))
     print(json.dumps(build_index_manifest(a.out), indent=2))
 
 if __name__ == "__main__":

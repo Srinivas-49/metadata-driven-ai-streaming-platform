@@ -1,0 +1,36 @@
+bundle:
+  name: metadata-rag-portfolio
+
+resources:
+  jobs:
+    synthetic_retrieval_evaluation:
+      name: synthetic-retrieval-evaluation-${bundle.target}
+      description: "Synthetic document ingestion, ACL-scoped retrieval and evaluation."
+      max_concurrent_runs: 1
+      schedule:
+        quartz_cron_expression: "0 0 11 * * ?"
+        timezone_id: "UTC"
+        pause_status: PAUSED
+      tasks:
+        - task_key: bootstrap
+          notebook_task:
+            notebook_path: ./deployment/00_bootstrap_workspace.py
+        - task_key: document_ingestion
+          depends_on:
+            - task_key: bootstrap
+          notebook_task:
+            notebook_path: ./notebooks/01_spark_document_ingestion.py
+        - task_key: rank_and_evaluate
+          depends_on:
+            - task_key: document_ingestion
+          notebook_task:
+            notebook_path: ./notebooks/02_spark_retrieval_evaluation.py
+        - task_key: validate_and_audit
+          depends_on:
+            - task_key: rank_and_evaluate
+          notebook_task:
+            notebook_path: ./deployment/90_validate_retrieval.py
+targets:
+  dev:
+    default: true
+    mode: development

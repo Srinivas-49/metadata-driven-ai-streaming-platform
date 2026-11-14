@@ -90,15 +90,27 @@ def write_pages(root, source, *, topic="data engineering", pages=2, page_size=25
         raise ValueError("Invalid topic")
     folder = Path(root) / source
     folder.mkdir(parents=True, exist_ok=True)
+    old_manifest_path = folder / "manifest.json"
+    previous = json.loads(old_manifest_path.read_text()) if old_manifest_path.exists() else None
+    if previous and (previous["source"] != source or previous["topic"] != topic
+                     or previous["page_size"] != page_size):
+        raise ValueError("Source parameters changed; use a separate landing folder")
+    previous_entries = {item["filename"]: item for item in (previous or {}).get("pages", [])}
     cursor = "*"
     entries = []
     for index in range(pages):
         path = folder / f"page_{index:06d}.jsonl"
         bookmark = folder / f"page_{index:06d}.cursor.json"
         if path.is_file() and bookmark.is_file():
-            count = len(path.read_bytes().splitlines())
+            data = path.read_bytes()
+            count = len(data.splitlines())
+            sha = hashlib.sha256(data).hexdigest()
+            previous_entry = previous_entries.get(path.name)
+            if not previous_entry or previous_entry["sha256"] != sha:
+                raise ValueError("Cached scholarly page is untracked or corrupt")
             cursor = json.loads(bookmark.read_text())["next_cursor"]
-            sha = hashlib.sha256(path.read_bytes()).hexdigest()
+        elif path.exists() or bookmark.exists():
+            raise ValueError("Partial source download, restore both page and cursor or restart")
         else:
             if source == "crossref":
                 url = CROSSREF + "?" + urlencode({

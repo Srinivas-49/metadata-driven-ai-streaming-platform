@@ -1,0 +1,1 @@
+The medallion architecture separates raw Bronze records, validated Silver records, and aggregated Gold tables. Azure Data Factory orchestrates ingestion, while Databricks executes PySpark transformations. Delta Lake provides ACID transactions and version history. Data quality checks validate schemas and quarantine invalid rows.

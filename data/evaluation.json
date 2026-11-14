@@ -1,0 +1,5 @@
+[
+  {"question": "What are Bronze Silver Gold layers?", "expected_source": "lakehouse"},
+  {"question": "How do consumer groups handle Kafka partitions?", "expected_source": "streaming"},
+  {"question": "How does retrieval augmented generation use embeddings?", "expected_source": "rag"}
+]

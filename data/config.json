@@ -1,0 +1,9 @@
+{
+  "chunk_words": 50,
+  "overlap_words": 8,
+  "sources": [
+    {"id": "lakehouse", "path": "architecture.txt"},
+    {"id": "streaming", "path": "streaming.txt"},
+    {"id": "rag", "path": "llm.txt"}
+  ]
+}

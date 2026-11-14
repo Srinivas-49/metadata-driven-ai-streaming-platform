@@ -1,0 +1,1 @@
+Retrieval augmented generation uses chunking, embedding models, vector search, prompt templates and an LLM to produce answers grounded in documents. Evaluation includes retrieval recall, answer faithfulness, latency and cost. LangChain can orchestrate retrieval and model calls. A lexical retrieval baseline can run offline without a model.

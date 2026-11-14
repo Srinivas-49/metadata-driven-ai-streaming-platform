@@ -1,0 +1,1 @@
+Kafka is a distributed event log. Consumer groups split partitions between workers. At least once delivery can replay messages after failure. Idempotent event IDs prevent duplicate aggregate updates. Dead letter queues capture malformed events. Consumer lag and processing latency support operational monitoring.

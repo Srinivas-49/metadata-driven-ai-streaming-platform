@@ -15,3 +15,14 @@ Change the topic to e.g. "machine learning" to obtain a larger corpus. Crawls ov
 Upload only licensed and permission-reviewed files to a Databricks managed Volume, then use the Spark notebook to create curated metadata/chunks, citation indexes and evaluation. Free Edition restricts arbitrary outbound internet access, so laptop → Volume is the intended safe path.
 
 Data rights and privacy: citations should link to canonical DOI pages; no claim of medical diagnosis accuracy, confidential indexing, or clinical compliance. No content from the APIs is committed into GitHub automatically; CI uses tiny fabricated mock records.
+
+## Cursor-based deep backfill
+
+For larger corpus experiments, use fixed topics and repeat page windows while retaining the same manifest files:
+
+```bash
+python -m real_data.scholarly_sources --topic "machine learning" --out real-data/research_ml --page-size 1000 --pages 10 --start-page 0
+python -m real_data.scholarly_sources --topic "machine learning" --out real-data/research_ml --page-size 1000 --pages 10 --start-page 10 --confirm-large
+```
+
+The crawler verifies previous pages and resumes from the last persisted Crossref/Europe PMC cursor rather than naive offset pagination. Do not change topic or page size for a continuing crawl. Observe provider rate limits, use polite serial requests, and stop when an upstream cursor stops progressing. **Never treat an available large metadata corpus as permission to bulk copy copyrighted full texts.**
